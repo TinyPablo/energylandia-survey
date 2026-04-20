@@ -30,3 +30,4 @@ dist
 backend/venv/
 backend/survey.db
 backend/__pycache__/
+.env.*

@@ -22,9 +22,6 @@ def init_db():
     conn.commit()
     conn.close()
     
-    
-
-
 def upsert_submission(data):
     conn = get_connection()
     conn.execute("""
@@ -40,3 +37,9 @@ def upsert_submission(data):
     ))
     conn.commit()
     conn.close()
+
+def album_exists(album_number: str) -> bool:
+    conn = get_connection()
+    row = conn.execute("SELECT 1 FROM submissions WHERE album_number = ?", (album_number,)).fetchone()
+    conn.close()
+    return row is not None

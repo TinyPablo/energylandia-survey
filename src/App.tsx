@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import './App.css'
 
 const SUNDAYS = [
@@ -13,45 +15,31 @@ const SUNDAYS = [
   '2026-06-28',
 ]
 
+const schema = z.object({
+  albumNumber: z.string().regex(/^\d{4,6}$/, 'Musi mieć 4-6 cyfr'),
+  fullName: z.string().min(1, 'Podaj imię i nazwisko'),
+  selectedDates: z.array(z.string()).min(1, 'Zaznacz co najmniej jeden termin'),
+  transport: z.string().min(1, 'Wybierz opcję transportu'),
+  seats: z.string().optional(),
+})
+
+type FormFields = z.infer<typeof schema>
+
 function App() {
-  const [albumNumber, setAlbumNumber] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [selectedDates, setSelectedDates] = useState<string[]>([])
-  const [transport, setTransport] = useState('')
-  const [seats, setSeats] = useState('')
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<FormFields>({
+    defaultValues: {
+      selectedDates: [],
+      transport: '',
+    },
+    resolver: zodResolver(schema),
+  })
 
-  const clearError = (field: string) => {
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: '' })
-    }
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const newErrors: Record<string, string> = {}
-
-    if (!/^\d{4,6}$/.test(albumNumber)) {
-      newErrors.albumNumber = 'Numer albumu musi mieć 4-6 cyfr'
-    }
-
-    if (fullName.trim() === '') {
-      newErrors.fullName = 'Podaj imię i nazwisko'
-    }
-
-    if (selectedDates.length === 0) {
-      newErrors.selectedDates = 'Zaznacz co najmniej jeden termin'
-    }
-
-    if (transport === '') {
-      newErrors.transport = 'Wybierz opcję transportu'
-    }
-
-    setErrors(newErrors)
-
-    if (Object.keys(newErrors).length > 0) return
-  }
+  const transport = useWatch({ control, name: 'transport' })
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('pl-PL', {
@@ -61,6 +49,10 @@ function App() {
     })
   }
 
+  const onSubmit = (data: FormFields) => {
+    console.log(data)
+  }
+
   return (
     <main className="container">
       <article
@@ -68,21 +60,19 @@ function App() {
       >
         <h1 style={{ textAlign: 'center' }}>Ankieta Energylandia WSIZ</h1>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="form-section">
             <label htmlFor="album-number">Numer albumu</label>
             <input
               placeholder="np. 1234"
               id="album-number"
               type="text"
-              value={albumNumber}
-              onChange={(e) => {
-                setAlbumNumber(e.target.value)
-                clearError('albumNumber')
-              }}
+              {...register('albumNumber')}
             />
             {errors.albumNumber && (
-              <small style={{ color: 'red' }}>{errors.albumNumber}</small>
+              <small style={{ color: 'red' }}>
+                {errors.albumNumber.message}
+              </small>
             )}
           </div>
 
@@ -90,16 +80,11 @@ function App() {
             <label htmlFor="full-name">Imię i Nazwisko</label>
             <input
               placeholder="np. Jan Kowalski"
-              id="full-name"
               type="text"
-              value={fullName}
-              onChange={(e) => {
-                setFullName(e.target.value)
-                clearError('fullName')
-              }}
+              {...register('fullName')}
             />
             {errors.fullName && (
-              <small style={{ color: 'red' }}>{errors.fullName}</small>
+              <small style={{ color: 'red' }}>{errors.fullName.message}</small>
             )}
           </div>
 
@@ -109,21 +94,16 @@ function App() {
               <label key={date}>
                 <input
                   type="checkbox"
+                  {...register('selectedDates')}
                   value={date}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedDates([...selectedDates, date])
-                    } else {
-                      setSelectedDates(selectedDates.filter((d) => d !== date))
-                    }
-                    clearError('selectedDates')
-                  }}
                 />
                 {formatDate(date)}
               </label>
             ))}
             {errors.selectedDates && (
-              <small style={{ color: 'red' }}>{errors.selectedDates}</small>
+              <small style={{ color: 'red' }}>
+                {errors.selectedDates.message}
+              </small>
             )}
           </div>
 
@@ -133,13 +113,9 @@ function App() {
             <label htmlFor="driver">
               <input
                 id="driver"
-                type="radio"
-                name="transport"
                 value="driver"
-                onChange={(e) => {
-                  setTransport(e.target.value)
-                  clearError('transport')
-                }}
+                type="radio"
+                {...register('transport')}
               />
               Jadę autem
             </label>
@@ -150,13 +126,7 @@ function App() {
                   placeholder="1-8"
                   type="number"
                   id="seats"
-                  value={seats}
-                  onChange={(e) => {
-                    setSeats(e.target.value)
-                    clearError('transport')
-                  }}
-                  min={1}
-                  max={8}
+                  {...register('seats')}
                 />
               </>
             )}
@@ -164,13 +134,9 @@ function App() {
             <label htmlFor="no-car">
               <input
                 id="no-car"
-                type="radio"
-                name="transport"
                 value="no-car"
-                onChange={(e) => {
-                  setTransport(e.target.value)
-                  clearError('transport')
-                }}
+                type="radio"
+                {...register('transport')}
               />
               Nie jadę autem, dam radę
             </label>
@@ -178,18 +144,14 @@ function App() {
             <label htmlFor="needs-ride">
               <input
                 id="needs-ride"
-                type="radio"
-                name="transport"
                 value="needs-ride"
-                onChange={(e) => {
-                  setTransport(e.target.value)
-                  clearError('transport')
-                }}
+                type="radio"
+                {...register('transport')}
               />
               Potrzebuję podwózki
             </label>
             {errors.transport && (
-              <small style={{ color: 'red' }}>{errors.transport}</small>
+              <small style={{ color: 'red' }}>{errors.transport.message}</small>
             )}
           </div>
           <button type="submit">Wyślij ankietę</button>

@@ -43,3 +43,9 @@ def album_exists(album_number: str) -> bool:
     row = conn.execute("SELECT 1 FROM submissions WHERE album_number = ?", (album_number,)).fetchone()
     conn.close()
     return row is not None
+
+def get_all_submissions():
+    conn = get_connection()
+    rows = conn.execute("SELECT * FROM submissions").fetchall()
+    conn.close()
+    return [dict(row) for row in rows]

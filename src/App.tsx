@@ -46,7 +46,7 @@ function App() {
 
   useEffect(() => {
     if (!/^\d{4,6}$/.test(albumNumber)) return
-    fetch(`http://localhost:8000/check-album/${albumNumber}`)
+    fetch(`${import.meta.env.VITE_API_URL}/check-album/${albumNumber}`)
       .then((r) => r.json())
       .then((data) => setAlbumExists(data.exists))
   }, [albumNumber])
@@ -60,7 +60,7 @@ function App() {
   }
 
   const onSubmit = async (data: FormFields) => {
-    const response = await fetch('http://localhost:8000/submit', {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),

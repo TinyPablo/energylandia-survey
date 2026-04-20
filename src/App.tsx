@@ -2,6 +2,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import './App.css'
+import { useEffect, useState } from 'react'
 
 const SUNDAYS = [
   '2026-05-03',
@@ -26,6 +27,7 @@ const schema = z.object({
 type FormFields = z.infer<typeof schema>
 
 function App() {
+  const [albumExists, setAlbumExists] = useState(false)
   const {
     register,
     handleSubmit,
@@ -39,7 +41,15 @@ function App() {
     resolver: zodResolver(schema),
   })
 
+  const albumNumber = useWatch({ control, name: 'albumNumber' })
   const transport = useWatch({ control, name: 'transport' })
+
+  useEffect(() => {
+    if (!/^\d{4,6}$/.test(albumNumber)) return
+    fetch(`http://localhost:8000/check-album/${albumNumber}`)
+      .then((r) => r.json())
+      .then((data) => setAlbumExists(data.exists))
+  }, [albumNumber])
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('pl-PL', {
@@ -78,6 +88,12 @@ function App() {
             {errors.albumNumber && (
               <small style={{ color: 'red' }}>
                 {errors.albumNumber.message}
+              </small>
+            )}
+            {albumExists && (
+              <small style={{ color: 'orange' }}>
+                Ten numer albumu już istnieje — wysłanie nadpisze poprzednią
+                odpowiedź.
               </small>
             )}
           </div>

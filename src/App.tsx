@@ -30,7 +30,7 @@ function App() {
     register,
     handleSubmit,
     control,
-    formState: { errors },
+    formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<FormFields>({
     defaultValues: {
       selectedDates: [],
@@ -49,8 +49,14 @@ function App() {
     })
   }
 
-  const onSubmit = (data: FormFields) => {
-    console.log(data)
+  const onSubmit = async (data: FormFields) => {
+    const response = await fetch('http://localhost:8000/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) throw new Error('Błąd serwera')
+    await response.json()
   }
 
   return (
@@ -154,7 +160,10 @@ function App() {
               <small style={{ color: 'red' }}>{errors.transport.message}</small>
             )}
           </div>
-          <button type="submit">Wyślij ankietę</button>
+          <button disabled={isSubmitting}>
+            <>{isSubmitting ? 'Wysyłanie...' : 'Wyślij ankietę'}</>
+          </button>
+          {isSubmitSuccessful && <p>Dziękujemy za wypełnienie ankiety!</p>}
         </form>
       </article>
     </main>

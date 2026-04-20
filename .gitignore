@@ -28,3 +28,5 @@ dist
 .env
 .env.local
 backend/venv/
+backend/survey.db
+backend/__pycache__/

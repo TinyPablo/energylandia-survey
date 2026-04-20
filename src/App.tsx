@@ -46,7 +46,7 @@ function App() {
 
   useEffect(() => {
     if (!/^\d{4,6}$/.test(albumNumber)) return
-    fetch(`${import.meta.env.VITE_API_URL}/check-album/${albumNumber}`)
+    fetch(`/api/check-album/${albumNumber}`)
       .then((r) => r.json())
       .then((data) => setAlbumExists(data.exists))
   }, [albumNumber])
@@ -60,7 +60,7 @@ function App() {
   }
 
   const onSubmit = async (data: FormFields) => {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/submit`, {
+    const response = await fetch(`/api/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -103,6 +103,7 @@ function App() {
             <input
               placeholder="np. Jan Kowalski"
               type="text"
+              id="full-name"
               {...register('fullName')}
             />
             {errors.fullName && (

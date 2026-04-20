@@ -1,0 +1,12 @@
+services:
+  frontend:
+    build: .
+    ports:
+      - "3000:80"
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/survey.db:/app/survey.db

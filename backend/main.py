@@ -1,4 +1,5 @@
 import json
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,9 +9,12 @@ from database import album_exists, get_all_submissions, init_db, upsert_submissi
 init_db()
 app = FastAPI()
 
+origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], 
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -23,24 +27,15 @@ async def submit_survey(data: SurveySubmission):
 @app.get("/check-album/{album_number}")
 async def check_album(album_number: str):
     exists = album_exists(album_number)
-    return { "exists": exists }
-
-
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-
+    return {"exists": exists}
 
 @app.get("/results")
 async def get_results():
     all_submissions = get_all_submissions()
-    return ***REMOVED***
+    return [{
         "album_number": user.get("album_number"),
         "full_name": user.get("full_name"),
         "selected_dates": json.loads(user.get("selected_dates")),
         "transport": user.get("transport"),
         "seats": user.get("seats"),
-        } for user in all_submissions]
+    } for user in all_submissions]

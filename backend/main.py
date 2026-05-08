@@ -9,7 +9,14 @@ from database import album_exists, get_all_submissions, init_db, upsert_submissi
 init_db()
 app = FastAPI()
 
-origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://localhost:5173,https://energylandia.pawelzawada.dev"
+    ).split(",")
+    if origin.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,

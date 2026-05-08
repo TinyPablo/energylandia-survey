@@ -7,27 +7,47 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Frontend
+node_modules/
+dist/
+dist-ssr/
+coverage/
 *.local
 
-# Editor directories and files
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.python-version
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+backend/venv/
+
+# SQLite / local data
+*.db
+*.db-shm
+*.db-wal
+backend/survey.db
+
+# Editors / OS
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-node_modules
-dist
-.env
-.env.local
-backend/venv/
-backend/survey.db
-backend/__pycache__/
-.env.*

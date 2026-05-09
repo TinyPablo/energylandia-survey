@@ -1,7 +1,7 @@
 import sqlite3
 import json
 
-DB_PATH = "survey.db"
+DB_PATH = "/data/survey.db"
 
 def get_connection():
     conn = sqlite3.connect(DB_PATH)

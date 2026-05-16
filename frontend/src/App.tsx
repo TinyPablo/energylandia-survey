@@ -5,24 +5,38 @@ import './App.css'
 import { useEffect, useState } from 'react'
 
 const SUNDAYS = [
-  '2026-05-03',
-  '2026-05-10',
-  '2026-05-17',
-  '2026-05-24',
-  '2026-05-31',
-  '2026-06-07',
-  '2026-06-14',
-  '2026-06-21',
-  '2026-06-28',
+  { value: '2026-05-24', label: 'sesja T1' },
+  { value: '2026-05-31', label: 'sesja T2/tydzień I' },
+  { value: '2026-06-07', label: 'tydzień II' },
+  { value: '2026-06-14', label: 'tydzień III' },
+  { value: '2026-06-21', label: 'tydzień IV' },
+  { value: '2026-06-28', label: 'tydzień V' },
 ]
 
-const schema = z.object({
-  albumNumber: z.string().regex(/^\d{4,6}$/, 'Musi mieć 4-6 cyfr'),
-  fullName: z.string().min(1, 'Podaj imię i nazwisko'),
-  selectedDates: z.array(z.string()).min(1, 'Zaznacz co najmniej jeden termin'),
-  transport: z.string().min(1, 'Wybierz opcję transportu'),
-  seats: z.string().optional(),
-})
+const schema = z
+  .object({
+    albumNumber: z.string().regex(/^\d{4}$/, 'Musi mieć 4 cyfry'),
+    fullName: z.string().min(1, 'Podaj imię i nazwisko'),
+    selectedDates: z
+      .array(z.string())
+      .min(1, 'Zaznacz co najmniej jeden termin'),
+    transport: z.string().min(1, 'Wybierz opcję transportu'),
+    seats: z
+      .number()
+      .int()
+      .min(0, 'Min. 0 miejsc')
+      .max(8, 'Max. 8 miejsc')
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.transport === 'driver' && data.seats === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['seats'],
+        message: 'Podaj liczbę miejsc',
+      })
+    }
+  })
 
 type FormFields = z.infer<typeof schema>
 
@@ -45,10 +59,11 @@ function App() {
   const transport = useWatch({ control, name: 'transport' })
 
   useEffect(() => {
-    if (!/^\d{4,6}$/.test(albumNumber)) return
+    if (!albumNumber || !/^\d{4,6}$/.test(albumNumber)) return
     fetch(`/api/check-album/${albumNumber}`)
       .then((r) => r.json())
       .then((data) => setAlbumExists(data.exists))
+      .catch(() => setAlbumExists(false))
   }, [albumNumber])
 
   const formatDate = (dateStr: string) => {
@@ -113,14 +128,14 @@ function App() {
 
           <div className="form-section">
             <p>Zaznacz terminy które Ci nie przeszkadzają:</p>
-            {SUNDAYS.map((date) => (
-              <label key={date}>
+            {SUNDAYS.map(({ value, label }) => (
+              <label key={value}>
                 <input
                   type="checkbox"
                   {...register('selectedDates')}
-                  value={date}
+                  value={value}
                 />
-                {formatDate(date)}
+                {formatDate(value)} ({label})
               </label>
             ))}
             {errors.selectedDates && (
@@ -144,13 +159,24 @@ function App() {
             </label>
             {transport === 'driver' && (
               <>
-                <label htmlFor="seats">Liczba miejsc</label>
+                <label htmlFor="seats">
+                  Liczba wolnych miejsc (0 = nie zabieram nikogo)
+                </label>
                 <input
-                  placeholder="1-8"
+                  placeholder="0-8"
                   type="number"
                   id="seats"
-                  {...register('seats')}
+                  min={0}
+                  max={8}
+                  step={1}
+                  {...register('seats', {
+                    setValueAs: (value) =>
+                      value === '' ? undefined : Number(value),
+                  })}
                 />
+                {errors.seats && (
+                  <small style={{ color: 'red' }}>{errors.seats.message}</small>
+                )}
               </>
             )}
 
@@ -178,7 +204,7 @@ function App() {
             )}
           </div>
           <button disabled={isSubmitting}>
-            <>{isSubmitting ? 'Wysyłanie...' : 'Wyślij ankietę'}</>
+            {isSubmitting ? 'Wysyłanie...' : 'Wyślij ankietę'}
           </button>
           {isSubmitSuccessful && <p>Dziękujemy za wypełnienie ankiety!</p>}
         </form>

@@ -5,8 +5,6 @@ import './App.css'
 import { useEffect, useState } from 'react'
 
 const SUNDAYS = [
-  { value: '2026-05-24', label: 'sesja T1' },
-  { value: '2026-05-31', label: 'sesja T2/tydzień I' },
   { value: '2026-06-07', label: 'tydzień II' },
   { value: '2026-06-14', label: 'tydzień III' },
   { value: '2026-06-21', label: 'tydzień IV' },
